@@ -15,4 +15,21 @@ public class CandleDTO {
     private String accumulateTradePrice;
     private String accumulateTradeVolume;
     private String unit;
+
+    @Override
+    public String toString() {
+        return "CandleDTO{" +
+                "market='" + market + '\'' +
+                ", timeUTC='" + timeUTC + '\'' +
+                ", timeKST='" + timeKST + '\'' +
+                ", openingPrince=" + openingPrince +
+                ", highPrice=" + highPrice +
+                ", lowPrice=" + lowPrice +
+                ", tradePrice=" + tradePrice +
+                ", timestamp='" + timestamp + '\'' +
+                ", accumulateTradePrice='" + accumulateTradePrice + '\'' +
+                ", accumulateTradeVolume='" + accumulateTradeVolume + '\'' +
+                ", unit='" + unit + '\'' +
+                '}';
+    }
 }

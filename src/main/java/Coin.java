@@ -13,10 +13,16 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.text.NumberFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Coin {
+
+    public static List<String> names = new ArrayList<>();
+
     public List<String> getNames() throws NoSuchAlgorithmException, UnsupportedEncodingException {
 
         JSONParser jsonParser = new JSONParser();
@@ -43,19 +49,16 @@ public class Coin {
             }
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        } catch (org.apache.hc.core5.http.ParseException e) {
+        } catch (ParseException | org.apache.hc.core5.http.ParseException e) {
             throw new RuntimeException(e);
         }
+        names = result;
         return result;
     }
 
     public List<CandleDTO> getCandleDTOs(String coinName, int count, String beforeTime) {
-
         JSONParser jsonParser = new JSONParser();
         String serverUrl = "https://api.upbit.com";
-
         NumberFormat f = NumberFormat.getInstance();
         f.setGroupingUsed(false);
         List<CandleDTO> dtos = new ArrayList<>();
@@ -67,15 +70,13 @@ public class Coin {
                 url += "&to=" + beforeTime;
             }
             HttpGet request = new HttpGet(url);
-
             CloseableHttpResponse response = client.execute(request);
             HttpEntity entity = response.getEntity();
             String entityString = (EntityUtils.toString(entity, "UTF-8"));
-//            System.out.println(entityString);
-            JSONArray jsonObject = (JSONArray) jsonParser.parse(entityString);
-            CandleDTO dto = new CandleDTO();
+            JSONArray jsonObject = (JSONArray) jsonParser.parse(entityString);;
             for (int i = 0; i < jsonObject.size(); i++) {
                 JSONObject json = (JSONObject) jsonObject.get(i);
+                CandleDTO dto = new CandleDTO();
                 dto.setMarket((String) json.get("market"));
                 dto.setTimeUTC((String) json.get("candle_date_time_utc"));
                 dto.setTimeKST((String) json.get("candle_date_time_kst"));
@@ -96,20 +97,22 @@ public class Coin {
         return dtos;
     }
 
-    public List<CandleDTO> make24hoursDtos(String name) {
-        List<CandleDTO> list = getCandleDTOs(name, 200, null);
-        while (true) {
-            System.out.println(list.size());
+    public List<CandleDTO> make24hoursDtos(String name, int days) {
+        LocalDateTime yesterDay = LocalDateTime.now().minusDays(1);
+        String stringDate
+                = yesterDay.format(
+                DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
+        );
+
+        List<CandleDTO> list = getCandleDTOs(name, 200, stringDate);
+        for(int i =0; i<days;){
             CandleDTO dto = list.get(list.size() - 1);
-            String time = dto.getTimeKST();
-            if (list.size() < 1400) {
-                list.addAll(getCandleDTOs(name, 200, time));
-            } else if (list.size() == 1400) {
-                dto = list.get(1399);
-                time = dto.getTimeKST();
-                list.addAll(getCandleDTOs(name, 40, time));
-            }else if(list.size() == 1440){
-                break;
+            String time = dto.getTimeUTC();
+            if(list.size() % 1440 != 0){
+                list.addAll(getCandleDTOs(name,200, time));
+            }else {
+                list.addAll(getCandleDTOs(name,40,time));
+                i++;
             }
         }
         return list;
