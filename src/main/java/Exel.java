@@ -52,7 +52,6 @@ public class Exel {
                     i--; // 코인을 팔때까지 계속 반복문 돌아야함.
                     sheet = workbook.getSheet(buyingCoin);
                 }
-                System.out.println("sheetName:" + sheet.getSheetName());
 
                 int currentRow = 1;
                 int rows = sheet.getPhysicalNumberOfRows(); // 해당 시트의 행의 개수
@@ -63,7 +62,7 @@ public class Exel {
                     }
 
                     HSSFRow row = sheet.getRow(rowIndex); // 각 행을 읽어온다
-                    if(row == null){ // 현재 행에 아무 데이터도 없으면 빠져나옴.
+                    if (row == null) { // 현재 행에 아무 데이터도 없으면 빠져나옴.
                         break;
                     }
 
@@ -79,29 +78,40 @@ public class Exel {
                 List<Double> percentList = new ArrayList<>();
                 // 종가 리스트를 이용해서 각 분마다 상승률 퍼센트를 구한다.
                 for (int j = 0; j < priceList.size() - 1; j++) {
+
+
                     double diff = priceList.get(j) - priceList.get(j + 1);
                     double percent = Math.round(diff / priceList.get(j + 1) * 10000) / 100.0;
+
+
                     percentList.add(percent);
                 }
 
                 // 구매조건
-                if (buyingCoin.equals("") && percentList.get(1) > 1.5 && percentList.get(0) > 1.5) {
-                    buyingCoin = sheet.getSheetName();
-                    buyingPrice = priceList.get(0);
+                for(int j=0; j<percentList.size()-1; j++){
+                    if (buyingCoin.equals("") && priceList.get(0) > 150 && percentList.get(j) >1.5 && percentList.get(j+1) > 1.5) {
+                        System.out.println(sheet.getSheetName());
+                        buyingCoin = sheet.getSheetName();
+                        buyingPrice = priceList.get(0);
+                    }
                 }
+
 
                 // 판매조건
                 if (!buyingCoin.equals("")) {
-                    double nowPrice = priceList.get(0);
-                    if (nowPrice > buyingPrice * 1.015) {
-                        MONEY = MONEY * 1.015;
-                        buyingPrice = 0;
-                        buyingCoin = "";
-                    }
-                    if (nowPrice > buyingPrice * 0.98) {
-                        MONEY = MONEY * 0.98;
-                        buyingPrice = 0;
-                        buyingCoin = "";
+                    for(int j =0; j<priceList.size(); j++){
+                        double nowPrice = priceList.get(j);
+                        if (nowPrice > buyingPrice * 1.015) {
+                            MONEY = MONEY * 1.015;
+                            buyingPrice = 0;
+                            System.out.println(buyingCoin);
+                            buyingCoin = "";
+                        }
+                        if (nowPrice > buyingPrice * 0.98) {
+                            MONEY = MONEY * 0.98;
+                            buyingPrice = 0;
+                            buyingCoin = "";
+                        }
                     }
                 }
             }
