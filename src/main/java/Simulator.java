@@ -26,33 +26,30 @@ public class Simulator {
         Coin coin = new Coin();
         Exel exel = new Exel();
         Simulator simulator = new Simulator();
-//        exel.makeExelFile("test.xlsx");
-//        simulator.makeAllCoin24hourExelData();
-        FileInputStream fis = new FileInputStream(filePath + "test.xlsx");
-        simulator.setExelDataToCandleMap(fis);
-        while (true) {
-            while (!simulator.buySomething()) {
-                simulator.findTarget();
-                System.out.println("target: " + simulator.buyingCoin);
-                if(simulator.currentRow> simulator.rowSize){
-                    break;
-                }
-//                System.out.println("currentRow: " + simulator.currentRow);
-            }
-            simulator.sellCoin();
-            if (simulator.currentRow >= simulator.rowSize) {
-                break;
-            }
-        }
-        System.out.println(simulator.MONEY);
-        fis.close();
+        exel.makeExelFile("test.xlsx");
+        simulator.makeAllCoin24hourExelData();
+//        FileInputStream fis = new FileInputStream(filePath + "test.xlsx");
+//        simulator.setExelDataToCandleMap(fis);
+//        while (true) {
+//            while (!simulator.buySomething()) {
+//                simulator.findTarget();
+//                System.out.println("target: " + simulator.buyingCoin);
+//                if(simulator.currentRow> simulator.rowSize){
+//                    break;
+//                }
+////                System.out.println("currentRow: " + simulator.currentRow);
+//            }
+//            if (simulator.currentRow >= simulator.rowSize) {
+//                break;
+//            }
+//            simulator.sellCoin();
+//        }
+//        System.out.println(simulator.MONEY);
+//        fis.close();
     }
 
     public boolean buySomething() {
-        if (buyingCoin.equals("")) {
-            return false;
-        }
-        return true;
+        return !buyingCoin.equals("");
     }
 
     // 구매 코인을 판매함
@@ -68,15 +65,19 @@ public class Simulator {
             double nowPrice = priceList.get(j);
             if (nowPrice > buyingPrice * 1.015) {
                 MONEY = MONEY * 1.015;
+                System.out.println("++++++");
                 buyingPrice = 0;
                 buyingCoin = "";
                 currentRow = j;
+                break;
             }
             if (nowPrice > buyingPrice * 0.98) {
                 MONEY = MONEY * 0.98;
+                System.out.println("-----");
                 buyingPrice = 0;
                 buyingCoin = "";
                 currentRow = j;
+                break;
             }
         }
     }
@@ -91,7 +92,7 @@ public class Simulator {
                 return coinName;
             }
         }
-        return null;
+        return "";
     }
 
     // 단일 코인이 구매 타겟인지 확인
@@ -99,7 +100,7 @@ public class Simulator {
         List<CandleDTO> candleList = candleMap.get(coinName);
         List<Double> percentList = makeRescent10PercentList(candleList);
         for (int i = 0; i < percentList.size() - 1; i++) {
-            if (candleList.get(0).getTradePrice() > 150 && percentList.get(i) > 0.5 && percentList.get(i + 1) > 0.5) {
+            if (candleList.get(0).getTradePrice() > 150 && percentList.get(1) > 0.5 && percentList.get(2) > 0.5) {
                 return true;
             }
         }
@@ -164,7 +165,7 @@ public class Simulator {
         Map<String, List<CandleDTO>> map = new HashMap<>();
         for (String name : coinNames) {
             System.out.println("------------" + name + "-------------");
-            List<CandleDTO> list = coin.make24hoursDtos(name, 4);
+            List<CandleDTO> list = coin.make24hoursDtos(name, 7);
             map.put(name, list);
         }
         Iterator<String> iterator = map.keySet().iterator();
