@@ -26,26 +26,20 @@ public class Simulator {
         Coin coin = new Coin();
         Exel exel = new Exel();
         Simulator simulator = new Simulator();
-        exel.makeExelFile("test.xlsx");
-        simulator.makeAllCoin24hourExelData();
-//        FileInputStream fis = new FileInputStream(filePath + "test.xlsx");
-//        simulator.setExelDataToCandleMap(fis);
-//        while (true) {
-//            while (!simulator.buySomething()) {
-//                simulator.findTarget();
-//                System.out.println("target: " + simulator.buyingCoin);
-//                if(simulator.currentRow> simulator.rowSize){
-//                    break;
-//                }
-////                System.out.println("currentRow: " + simulator.currentRow);
-//            }
-//            if (simulator.currentRow >= simulator.rowSize) {
-//                break;
-//            }
-//            simulator.sellCoin();
-//        }
-//        System.out.println(simulator.MONEY);
-//        fis.close();
+//        exel.makeExelFile("test.xlsx");
+//        simulator.makeAllCoin24hourExelData();
+        FileInputStream fis = new FileInputStream(filePath + "test.xlsx");
+        simulator.setExelDataToCandleMap(fis);
+        while (simulator.currentRow <= simulator.rowSize) { // 현재 행(시간) 이 전체 행보다 작을때 반복.
+            if (!simulator.buySomething()) { // 구매한 코인이 없으면 구매 코인 찾기
+                simulator.findTarget();
+            } else {
+                simulator.sellCoin();
+            }
+            simulator.currentRow += 1;
+        }
+        System.out.println(simulator.MONEY);
+        fis.close();
     }
 
     public boolean buySomething() {
@@ -54,31 +48,32 @@ public class Simulator {
 
     // 구매 코인을 판매함
     public void sellCoin() {
-        if(buyingCoin.equals("")){
-            return;
-        }
         List<CandleDTO> candleList = candleMap.get(buyingCoin);
         List<Double> priceList = candleList.stream()
                 .map(CandleDTO::getTradePrice)
                 .toList();
-        for (int j = currentRow; j < priceList.size(); j++) {
-            double nowPrice = priceList.get(j);
-            if (nowPrice > buyingPrice * 1.015) {
-                MONEY = MONEY * 1.015;
-                System.out.println("++++++");
-                buyingPrice = 0;
-                buyingCoin = "";
-                currentRow = j;
-                break;
-            }
-            if (nowPrice > buyingPrice * 0.98) {
-                MONEY = MONEY * 0.98;
-                System.out.println("-----");
-                buyingPrice = 0;
-                buyingCoin = "";
-                currentRow = j;
-                break;
-            }
+        if(currentRow >= priceList.size()){
+            return;
+        }
+        double nowPrice = priceList.get(currentRow);
+        if (nowPrice > buyingPrice * 1.015) {
+            System.out.println("-------- 이익 --------");
+            MONEY = MONEY * 1.015;
+            buyingPrice = 0;
+            buyingCoin = "";
+            System.out.println("판매가격 : " + nowPrice);
+            System.out.println("판매 행 : " + (rowSize - currentRow));
+            System.out.println("판매 시간 : " +candleList.get(currentRow).getTimeKST());
+            System.out.println("==========================================================");
+        } else if (nowPrice < buyingPrice * 0.98) {
+            System.out.println("-------- 손해 --------");
+            MONEY = MONEY * 0.98;
+            buyingPrice = 0;
+            buyingCoin = "";
+            System.out.println("판매가격 : " + nowPrice);
+            System.out.println("판매 행 : " + (rowSize - currentRow));
+            System.out.println("판매 시간 : " +candleList.get(currentRow).getTimeKST());
+            System.out.println("==========================================================");
         }
     }
 
@@ -98,16 +93,24 @@ public class Simulator {
     // 단일 코인이 구매 타겟인지 확인
     public boolean isThisTarget(String coinName) {
         List<CandleDTO> candleList = candleMap.get(coinName);
+
         List<Double> percentList = makeRescent10PercentList(candleList);
-        for (int i = 0; i < percentList.size() - 1; i++) {
-            if (candleList.get(0).getTradePrice() > 150 && percentList.get(1) > 0.5 && percentList.get(2) > 0.5) {
-                return true;
-            }
+//        if(coinName.equals("KRW-IOTA")&& candleList.get(currentRow).getTimeKST().contains("2023-11-30T09:30:00")){
+//            System.out.println(percentList);
+//        }
+        if (percentList.size() > 3 && candleList.get(0).getTradePrice() > 150 && percentList.get(1) > 1.5 && percentList.get(2) > 1.5) {// 구매 조건
+
+            System.out.println("코인 이름 : " + coinName);
+            System.out.println("구매가격 : " + candleList.get(currentRow).getTradePrice());
+            System.out.println("구매 행 : " + (rowSize - currentRow));
+            System.out.println("구매 시간 : " +candleList.get(currentRow).getTimeKST());
+            buyingPrice = candleList.get(currentRow).getTradePrice();
+            return true;
         }
         return false;
     }
 
-    // 종가를 이용해서 최근 10분간의 상승률 퍼센트를 구한다.
+    // 종가를 이용해서 단일 코인의 최근 10분간의 상승률 퍼센트를 구한다.
     public List<Double> makeRescent10PercentList(List<CandleDTO> candleList) {
         List<Double> percentList = new ArrayList<>();
         for (int j = currentRow; j < currentRow + 10; j++) {
@@ -115,10 +118,9 @@ public class Simulator {
                 break;
             }
             double diff = candleList.get(j).getTradePrice() - candleList.get(j + 1).getTradePrice();
-            double percent = Math.round(diff / candleList.get(j + 1).getTradePrice() * 10000) / 100.0;
+            double percent =(-1)* Math.round(diff / candleList.get(j + 1).getTradePrice() * 10000) / 100.0;
             percentList.add(percent);
         }
-        currentRow += 10;
         return percentList;
     }
 
@@ -128,16 +130,16 @@ public class Simulator {
         int sheetNum = workbook.getNumberOfSheets();
         for (int i = 0; i < sheetNum; i++) {
             HSSFSheet sheet = workbook.getSheetAt(i);
-            List<CandleDTO> candleList = new ArrayList<>();
             int rowNum = sheet.getPhysicalNumberOfRows(); // 해당 시트의 행의 개수
             rowSize = rowNum;
+            List<CandleDTO> candleList = new ArrayList<>(Arrays.asList( new CandleDTO[rowSize-1]));
             for (int j = 1; j < rowNum; j++) {
                 HSSFRow row = sheet.getRow(j); // 각 행을 읽어온다
                 if (row == null) { // 현재 행에 아무 데이터도 없으면 빠져나옴.
                     break;
                 }
                 CandleDTO dto = makeCandleDtoWithExelRow(row);
-                candleList.add(dto);
+                candleList.set( rowNum -j -1,dto);
             }
             candleMap.put(sheet.getSheetName(), candleList);
         }
@@ -165,7 +167,7 @@ public class Simulator {
         Map<String, List<CandleDTO>> map = new HashMap<>();
         for (String name : coinNames) {
             System.out.println("------------" + name + "-------------");
-            List<CandleDTO> list = coin.make24hoursDtos(name, 7);
+            List<CandleDTO> list = coin.make24hoursDtos(name, 3);
             map.put(name, list);
         }
         Iterator<String> iterator = map.keySet().iterator();
