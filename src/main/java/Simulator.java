@@ -98,8 +98,9 @@ public class Simulator {
 //        if(coinName.equals("KRW-IOTA")&& candleList.get(currentRow).getTimeKST().contains("2023-11-30T09:30:00")){
 //            System.out.println(percentList);
 //        }
-        if (percentList.size() > 3 && candleList.get(0).getTradePrice() > 150 && percentList.get(1) > 1.5 && percentList.get(2) > 1.5) {// 구매 조건
-
+        if (percentList.size() > 3 && candleList.get(0).getTradePrice() > 150 && percentList.get(0)>0
+                && percentList.get(1) > 1.5 && percentList.get(2) > 1.5) {// 구매 조건
+            System.out.println(percentList);
             System.out.println("코인 이름 : " + coinName);
             System.out.println("구매가격 : " + candleList.get(currentRow).getTradePrice());
             System.out.println("구매 행 : " + (rowSize - currentRow));
@@ -113,7 +114,10 @@ public class Simulator {
     // 종가를 이용해서 단일 코인의 최근 10분간의 상승률 퍼센트를 구한다.
     public List<Double> makeRescent10PercentList(List<CandleDTO> candleList) {
         List<Double> percentList = new ArrayList<>();
-        for (int j = currentRow; j < currentRow + 10; j++) {
+        if(currentRow <10){
+            currentRow = 10;
+        }
+        for (int j = currentRow-1; j > currentRow -10; j--) {
             if (j >= candleList.size() - 1) {
                 break;
             }
