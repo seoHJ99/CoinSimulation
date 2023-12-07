@@ -16,7 +16,7 @@ public class Exel {
 
     private double MONEY = 10_000;
     private int rowSize=0;
-    static String filePath = "C:\\Users\\dev\\Desktop\\simulation\\";
+    static String filePath = "C:\\Users\\Hojun\\Desktop\\CoinSimulation\\";
 
     public void makeExelFile(String fileName) throws IOException, RuntimeErrorException {
         FileInputStream fis = null;
