@@ -16,10 +16,13 @@ public class Simulator {
     private LinkedHashMap<String, List<CandleDTO>> candleMap = new LinkedHashMap<>();
 
     // 현재 시점, 즉 몇번째 row인지
-    private int currentRow = 0;
+    public int currentRow = 0;
     private double buyingPrice;
     private String buyingCoin = "";
-    private double MONEY = 10_000;
+    public double MONEY = 10_000;
+
+    private double minusLine = 0.97;
+    private double plusLine = 1.01;
     int rowSize = 0;
     static String filePath = "C:\\Users\\Hojun\\Desktop\\CoinSimulation\\";
 
@@ -28,11 +31,10 @@ public class Simulator {
         Exel exel = new Exel();
         Simulator simulator = new Simulator();
 //        exel.makeExelFile("test.xlsx");
-//        simulator.makeAllCoin24hourExelData(14);
+//        simulator.makeAllCoin24hourExelData(10);
         FileInputStream fis = new FileInputStream(filePath + "test.xlsx");
         simulator.setExelDataToCandleMap(fis);
         while (simulator.currentRow <= simulator.rowSize) { // 현재 행(시간) 이 전체 행보다 작을때 반복.
-//            System.out.println(simulator.buyingCoin);
             if (!simulator.buySomething()) { // 구매한 코인이 없으면 구매 코인 찾기
                 simulator.findTarget();
             } else {
@@ -48,48 +50,123 @@ public class Simulator {
         return !buyingCoin.equals("");
     }
 
+    public void sellCoinByNext(){
+        List<CandleDTO> candleList = candleMap.get(buyingCoin);
+        List<Double> priceList = candleList.stream()
+                .map(CandleDTO::getTradePrice)
+                .toList();
+        List<Double> lowList = candleList.stream()
+                .map(CandleDTO::getLowPrice)
+                .toList();
+        List<Double> highList = candleList.stream()
+                .map(CandleDTO::getHighPrice)
+                .toList();
+        List<Double> percentList = makeRescent10PercentList(candleList, "high");
+
+        if (currentRow >= priceList.size()) {
+            return;
+        }
+        double nowPrice = priceList.get(currentRow);
+        double beforePrice = 0;
+        if(currentRow -1 > 0){
+             beforePrice = priceList.get(currentRow-1);
+        }
+        double nowLow = lowList.get(currentRow);
+        double afterLowPrice = 0;
+        double afterHighPrice = 0;
+        double beforeLowPrice = 0;
+        if (currentRow + 1 < candleList.size()) {
+            afterLowPrice = candleList.get(currentRow + 1).getLowPrice();
+            afterHighPrice = candleList.get(currentRow +1).getHighPrice();
+        }
+        if(currentRow -1 <candleList.size()){
+            beforeLowPrice = candleList.get(currentRow-1).getLowPrice()*0.95;
+        }
+        if(buyingCoin.equals("KRW-CHZ")){
+            System.out.println(percentList);
+        }
+        if ( (percentList.get(0) + percentList.get(1) + percentList.get(2) < -2) || percentList.get(1) <-4 || afterLowPrice < buyingPrice *0.92) {
+            double percentage = ((afterLowPrice - buyingPrice) / buyingPrice ) * 100;
+            System.out.println();
+            System.out.println("-------- 하락세 전환 --------");
+            if(afterLowPrice < buyingPrice){
+                System.out.println("------손해-------");
+            }else {
+                System.out.println("------이익-------");
+            }
+            System.out.println("이전 수익 : " + MONEY);
+            MONEY = MONEY * ((100D + percentage)/100D);
+            System.out.println("현재 수익 : " + MONEY);
+            System.out.println("상승치 : " + percentage);
+            System.out.println("구매가격 : " + buyingPrice);
+            buyingPrice = 0;
+            buyingCoin = "";
+            System.out.println("판매가격 : " + afterLowPrice);
+            System.out.println("판매 행 : " + (rowSize - currentRow));
+            System.out.println("판매 시간 : " + candleList.get(currentRow).getTimeKST());
+            System.out.println("다음 최저가 : " +afterLowPrice);
+            System.out.println("다음 최고가 : " +afterHighPrice);
+            System.out.println("==========================================================");
+        }
+    }
+
     // 구매 코인을 판매함
     public void sellCoin() {
         List<CandleDTO> candleList = candleMap.get(buyingCoin);
         List<Double> priceList = candleList.stream()
                 .map(CandleDTO::getTradePrice)
                 .toList();
+        List<Double> lowPriceList = candleList.stream()
+                .map(CandleDTO::getLowPrice)
+                .collect(Collectors.toList());
+        List<Double> highPriceList = candleList.stream()
+                .map(CandleDTO::getHighPrice)
+                .collect(Collectors.toList());
         if (currentRow >= priceList.size()) {
             return;
         }
         double nowPrice = priceList.get(currentRow);
+        double lowestPrice = lowPriceList.get(currentRow);
+        double highestPrice = highPriceList.get(currentRow);
         double afterLowPrice = 0;
+        double afterHighPrice = 0;
         if (currentRow + 1 < candleList.size()) {
             afterLowPrice = candleList.get(currentRow + 1).getLowPrice();
+            afterHighPrice = candleList.get(currentRow +1).getHighPrice();
         }
-        if (nowPrice > buyingPrice * 1.02) {
+        if (highestPrice > buyingPrice * plusLine) {
+            System.out.println();
             System.out.println("-------- 이익 --------");
-            MONEY = MONEY * 1.02;
+            MONEY = MONEY * plusLine;
             buyingPrice = 0;
             buyingCoin = "";
             System.out.println("판매가격 : " + nowPrice);
             System.out.println("판매 행 : " + (rowSize - currentRow));
             System.out.println("판매 시간 : " + candleList.get(currentRow).getTimeKST());
+            System.out.println("다음 최저가 : " +afterLowPrice);
+            System.out.println("다음 최고가 : " +afterHighPrice);
             System.out.println("==========================================================");
-            System.out.println(nowPrice);
-            System.out.println(afterLowPrice);
-        } else if (nowPrice < afterLowPrice * 0.98) {
-            System.out.println("-------- 일단 판매 --------");
-            MONEY = MONEY * 0.98;
+//        } else if (lowestPrice < afterLowPrice * minusLine) {
+//            System.out.println();
+//            System.out.println("-------- 일단 판매 --------");
+//            MONEY = MONEY * minusLine;
+//            buyingPrice = 0;
+//            buyingCoin = "";
+//            System.out.println("판매가격 : " + nowPrice);
+//            System.out.println("판매 행 : " + (rowSize - currentRow));
+//            System.out.println("판매 시간 : " + candleList.get(currentRow).getTimeKST());
+//            System.out.println("다음 최저가 : " +afterLowPrice);
+//            System.out.println("다음 최고가 : " +afterHighPrice);
+//            System.out.println("==========================================================");
+        } else if (lowestPrice < buyingPrice * minusLine) {
+            MONEY = MONEY * minusLine;
             buyingPrice = 0;
             buyingCoin = "";
             System.out.println("판매가격 : " + nowPrice);
             System.out.println("판매 행 : " + (rowSize - currentRow));
             System.out.println("판매 시간 : " + candleList.get(currentRow).getTimeKST());
-            System.out.println("==========================================================");
-        } else if (nowPrice < buyingPrice *0.98) {
-            System.out.println("-------- 손해 --------");
-            MONEY = MONEY * 0.98;
-            buyingPrice = 0;
-            buyingCoin = "";
-            System.out.println("판매가격 : " + nowPrice);
-            System.out.println("판매 행 : " + (rowSize - currentRow));
-            System.out.println("판매 시간 : " + candleList.get(currentRow).getTimeKST());
+            System.out.println("다음 최저가 : " +afterLowPrice);
+            System.out.println("다음 최고가 : " +afterHighPrice);
             System.out.println("==========================================================");
         }
     }
@@ -107,15 +184,30 @@ public class Simulator {
         return "";
     }
 
+    public String findTargetByNext() {
+        Iterator<String> coinNames = candleMap.keySet().iterator();
+        while (coinNames.hasNext()) {
+            String coinName = coinNames.next();
+            if (isThisTarget2(coinName)) {
+                buyingCoin = coinName;
+                return coinName;
+            }
+        }
+        return "";
+    }
+
     // 단일 코인이 구매 타겟인지 확인
     public boolean isThisTarget(String coinName) {
         List<CandleDTO> candleList = candleMap.get(coinName);
 
-        List<Double> percentList = makeRescent10PercentList(candleList);
+        List<Double> percentList = makeRescent10PercentList(candleList, "high");
 //        if(coinName.equals("KRW-IOTA")&& candleList.get(currentRow).getTimeKST().contains("2023-11-30T09:30:00")){
 //            System.out.println(percentList);
 //        }
-        if (percentList.size() > 3 && candleList.get(0).getTradePrice() > 150
+        if (percentList.size() > 3
+                && candleList.get(0).getTradePrice() > 150
+                && percentList.get(0) + percentList.get(1) > 10
+                && percentList.get(1) < 3
 //                && percentList.get(0) > 2
 //                && percentList.get(1) + percentList.get(2) > 3
 //                && percentList.get(1) > 0
@@ -136,6 +228,32 @@ public class Simulator {
 //                && percentList.get(1) + percentList.get(2) > 5
 //                && percentList.get(0) + percentList.get(1) > 6
         ) {// 구매 조건
+            System.out.println();
+            System.out.println("구매");
+            System.out.println(percentList);
+            System.out.println("코인 이름 : " + coinName);
+            System.out.println("구매가격 : " + candleList.get(currentRow).getTradePrice());
+            System.out.println("구매 행 : " + (rowSize - currentRow));
+            System.out.println("구매 시간 : " + candleList.get(currentRow).getTimeKST());
+            buyingPrice = candleList.get(currentRow).getTradePrice();
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isThisTarget2(String coinName) {
+        List<CandleDTO> candleList = candleMap.get(coinName);
+
+        List<Double> percentList = makeRescent10PercentList(candleList, "");
+//        if(coinName.equals("KRW-IOTA")&& candleList.get(currentRow).getTimeKST().contains("2023-11-30T09:30:00")){
+//            System.out.println(percentList);
+//        }
+        if (percentList.size() > 3
+                && percentList.get(0) + percentList.get(1) > 7
+                && percentList.get(1) <3
+        ) {// 구매 조건
+            System.out.println();
+            System.out.println("구매");
             System.out.println(percentList);
             System.out.println("코인 이름 : " + coinName);
             System.out.println("구매가격 : " + candleList.get(currentRow).getTradePrice());
@@ -148,7 +266,8 @@ public class Simulator {
     }
 
     // 종가를 이용해서 단일 코인의 최근 10분간의 상승률 퍼센트를 구한다.
-    public List<Double> makeRescent10PercentList(List<CandleDTO> candleList) {
+    public List<Double> makeRescent10PercentList(List<CandleDTO> candleList, String type) {
+
         List<Double> percentList = new ArrayList<>();
         if (currentRow < 10) {
             currentRow = 10;
@@ -160,7 +279,12 @@ public class Simulator {
             double first = candleList.get(j).getTradePrice();
             double second = candleList.get(j + 1).getTradePrice();
             if (j == currentRow - 1) {
-                second = candleList.get(j + 1).getHighPrice();
+                if(type.equals("high")){
+                    second = candleList.get(j + 1).getHighPrice();
+                }
+                if(type.equals("low")){
+                    second = candleList.get(j+1).getLowPrice();
+                }
             }
             double diff = first - second;
             double percent = (-1) * Math.round(diff / candleList.get(j + 1).getTradePrice() * 10000) / 100.0;
@@ -209,16 +333,27 @@ public class Simulator {
         Coin coin = new Coin();
         Exel exel = new Exel();
         List<String> coinNames = coin.getNames();
+        for (String coinName : coinNames) {
+            System.out.println(coinName);
+        }
         Map<String, List<CandleDTO>> map = new HashMap<>();
         for (String name : coinNames) {
-            System.out.println("------------" + name + "-------------");
-            List<CandleDTO> list = coin.make24hoursDtos(name, days);
-            map.put(name, list);
+
+            if( !name.equals("KRW-PYTH") ){
+                System.out.println("------------" + name + "-------------");
+                List<CandleDTO> list = coin.make24hoursDtos(name, days);
+                map.put(name, list);
+                System.out.println(list.size());
+            }
         }
         Iterator<String> iterator = map.keySet().iterator();
+        FileInputStream fis = new FileInputStream(filePath + "test.xlsx");
+        FileOutputStream fos = new FileOutputStream(filePath + "test.xlsx");
         while (iterator.hasNext()) {
             String key = iterator.next();
-            exel.writeExcelFile("test.xlsx", key, map.get(key));
+            exel.writeExcelFile(fis, fos, key, map.get(key));
         }
+        fis.close();
+        fos.close();
     }
 }

@@ -30,7 +30,6 @@ public class Coin {
         List<String> result = new ArrayList<>();
 
         try {
-
             CloseableHttpClient client = HttpClients.createDefault();
             HttpGet request = new HttpGet(serverUrl + "/v1/market/all?isDetails=false");
 
