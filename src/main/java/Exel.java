@@ -152,7 +152,8 @@ public class Exel {
         }
     }
 
-    public void writeExcelFile( FileInputStream fis, FileOutputStream fos, String sheetName, List<CandleDTO> candleDTOS) throws EncryptedDocumentException, IOException {
+    public void writeExcelFile( String sheetName, List<CandleDTO> candleDTOS) throws EncryptedDocumentException, IOException {
+        FileInputStream fis = new FileInputStream(filePath + "test.xlsx");
 
         HSSFWorkbook workbook = new HSSFWorkbook(fis);
         HSSFSheet sheet = null;
@@ -163,6 +164,9 @@ public class Exel {
             sheet = workbook.getSheet(sheetName);
         }
         makeSheetRows(sheet, candleDTOS);
+        FileOutputStream fos = new FileOutputStream(filePath + "test.xlsx");
         workbook.write(fos);
+        fis.close();
+        fos.close();
     }
 }

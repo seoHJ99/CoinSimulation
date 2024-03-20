@@ -97,7 +97,8 @@ public class Coin {
     }
 
     public List<CandleDTO> make24hoursDtos(String name, int days) {
-        LocalDateTime yesterDay = LocalDateTime.now().minusDays(1);
+        LocalDateTime yesterDay = LocalDateTime.now();
+//                .minusDays(1);
         String stringDate
                 = yesterDay.format(
                 DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")

@@ -30,20 +30,20 @@ public class Simulator {
         Coin coin = new Coin();
         Exel exel = new Exel();
         Simulator simulator = new Simulator();
-//        exel.makeExelFile("test.xlsx");
-//        simulator.makeAllCoin24hourExelData(10);
-        FileInputStream fis = new FileInputStream(filePath + "test.xlsx");
-        simulator.setExelDataToCandleMap(fis);
-        while (simulator.currentRow <= simulator.rowSize) { // 현재 행(시간) 이 전체 행보다 작을때 반복.
-            if (!simulator.buySomething()) { // 구매한 코인이 없으면 구매 코인 찾기
-                simulator.findTarget();
-            } else {
-                simulator.sellCoin();
-            }
-            simulator.currentRow += 1;
-        }
-        System.out.println(new BigDecimal(simulator.MONEY));
-        fis.close();
+        exel.makeExelFile("test.xlsx");
+        simulator.makeAllCoin24hourExelData(1);
+//        FileInputStream fis = new FileInputStream(filePath + "test.xlsx");
+//        simulator.setExelDataToCandleMap(fis);
+//        while (simulator.currentRow <= simulator.rowSize) { // 현재 행(시간) 이 전체 행보다 작을때 반복.
+//            if (!simulator.buySomething()) { // 구매한 코인이 없으면 구매 코인 찾기
+//                simulator.findTarget();
+//            } else {
+//                simulator.sellCoin();
+//            }
+//            simulator.currentRow += 1;
+//        }
+//        System.out.println(new BigDecimal(simulator.MONEY));
+//        fis.close();
     }
 
     public boolean buySomething() {
@@ -55,37 +55,20 @@ public class Simulator {
         List<Double> priceList = candleList.stream()
                 .map(CandleDTO::getTradePrice)
                 .toList();
-        List<Double> lowList = candleList.stream()
-                .map(CandleDTO::getLowPrice)
-                .toList();
-        List<Double> highList = candleList.stream()
-                .map(CandleDTO::getHighPrice)
-                .toList();
         List<Double> percentList = makeRescent10PercentList(candleList, "high");
 
         if (currentRow >= priceList.size()) {
             return;
         }
-        double nowPrice = priceList.get(currentRow);
-        double beforePrice = 0;
-        if(currentRow -1 > 0){
-             beforePrice = priceList.get(currentRow-1);
-        }
-        double nowLow = lowList.get(currentRow);
         double afterLowPrice = 0;
         double afterHighPrice = 0;
-        double beforeLowPrice = 0;
         if (currentRow + 1 < candleList.size()) {
             afterLowPrice = candleList.get(currentRow + 1).getLowPrice();
             afterHighPrice = candleList.get(currentRow +1).getHighPrice();
         }
-        if(currentRow -1 <candleList.size()){
-            beforeLowPrice = candleList.get(currentRow-1).getLowPrice()*0.95;
-        }
-        if(buyingCoin.equals("KRW-CHZ")){
-            System.out.println(percentList);
-        }
-        if ( (percentList.get(0) + percentList.get(1) + percentList.get(2) < -2) || percentList.get(1) <-4 || afterLowPrice < buyingPrice *0.92) {
+
+        if ( (percentList.get(0) + percentList.get(1) + percentList.get(2) < -2) || percentList.get(1) <-4
+                || afterLowPrice < buyingPrice *0.92) {
             double percentage = ((afterLowPrice - buyingPrice) / buyingPrice ) * 100;
             System.out.println();
             System.out.println("-------- 하락세 전환 --------");
@@ -338,7 +321,6 @@ public class Simulator {
         }
         Map<String, List<CandleDTO>> map = new HashMap<>();
         for (String name : coinNames) {
-
             if( !name.equals("KRW-PYTH") ){
                 System.out.println("------------" + name + "-------------");
                 List<CandleDTO> list = coin.make24hoursDtos(name, days);
@@ -347,13 +329,11 @@ public class Simulator {
             }
         }
         Iterator<String> iterator = map.keySet().iterator();
-        FileInputStream fis = new FileInputStream(filePath + "test.xlsx");
-        FileOutputStream fos = new FileOutputStream(filePath + "test.xlsx");
+
         while (iterator.hasNext()) {
             String key = iterator.next();
-            exel.writeExcelFile(fis, fos, key, map.get(key));
+            exel.writeExcelFile(key, map.get(key));
         }
-        fis.close();
-        fos.close();
+
     }
 }
