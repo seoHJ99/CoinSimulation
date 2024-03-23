@@ -24,14 +24,14 @@ public class Simulator {
     private double minusLine = 0.97;
     private double plusLine = 1.01;
     int rowSize = 0;
-    static String filePath = "C:\\Users\\Hojun\\Desktop\\CoinSimulation\\";
+    static String filePath = "C:\\Users\\Hojun\\Desktop\\git\\CoinSimulation\\";
 
     public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
         Coin coin = new Coin();
         Exel exel = new Exel();
         Simulator simulator = new Simulator();
         exel.makeExelFile("test.xlsx");
-        simulator.makeAllCoin24hourExelData(1);
+        simulator.makeAllCoin24hourExelData(3);
 //        FileInputStream fis = new FileInputStream(filePath + "test.xlsx");
 //        simulator.setExelDataToCandleMap(fis);
 //        while (simulator.currentRow <= simulator.rowSize) { // 현재 행(시간) 이 전체 행보다 작을때 반복.
