@@ -9,14 +9,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Exel {
 
-    private double MONEY = 10_000;
-    private int rowSize=0;
-    static String filePath = "C:\\Users\\Hojun\\Desktop\\git\\CoinSimulation";
+    static String filePath = "C:\\Users\\Hojun\\Desktop\\git\\CoinSimulation\\";
 
     public void makeExelFile(String fileName) throws IOException, RuntimeErrorException {
         FileInputStream fis = null;
@@ -152,8 +149,8 @@ public class Exel {
         }
     }
 
-    public void writeExcelFile( String sheetName, List<CandleDTO> candleDTOS) throws EncryptedDocumentException, IOException {
-        FileInputStream fis = new FileInputStream(filePath + "test.xlsx");
+    public void writeExcelFile( String sheetName, List<CandleDTO> candleDTOS, String name) throws EncryptedDocumentException, IOException {
+        FileInputStream fis = new FileInputStream(filePath + name);
 
         HSSFWorkbook workbook = new HSSFWorkbook(fis);
         HSSFSheet sheet = null;
@@ -164,7 +161,7 @@ public class Exel {
             sheet = workbook.getSheet(sheetName);
         }
         makeSheetRows(sheet, candleDTOS);
-        FileOutputStream fos = new FileOutputStream(filePath + "test.xlsx");
+        FileOutputStream fos = new FileOutputStream(filePath + name);
         workbook.write(fos);
         fis.close();
         fos.close();

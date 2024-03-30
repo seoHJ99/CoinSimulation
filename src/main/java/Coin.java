@@ -10,10 +10,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.security.NoSuchAlgorithmException;
 import java.text.NumberFormat;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -23,7 +20,7 @@ public class Coin {
 
     public static List<String> names = new ArrayList<>();
 
-    public List<String> getNames() throws NoSuchAlgorithmException, UnsupportedEncodingException {
+    public List<String> getNames()  {
 
         JSONParser jsonParser = new JSONParser();
         String serverUrl = "https://api.upbit.com";
@@ -86,6 +83,43 @@ public class Coin {
                 dto.setAccumulateTradePrice( json.get("candle_acc_trade_price").toString());
                 dto.setAccumulateTradeVolume(json.get("candle_acc_trade_volume").toString());
                 dto.setUnit(json.get("unit").toString());
+                dtos.add(dto);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (org.apache.hc.core5.http.ParseException | ParseException e) {
+            throw new RuntimeException(e);
+        }
+        return dtos;
+    }
+
+    public List<CandleDTO> dayCandleDtos(String coinName, int days) {
+        JSONParser jsonParser = new JSONParser();
+        String serverUrl = "https://api.upbit.com";
+        NumberFormat f = NumberFormat.getInstance();
+        f.setGroupingUsed(false);
+        List<CandleDTO> dtos = new ArrayList<>();
+
+        try {
+            CloseableHttpClient client = HttpClients.createDefault();
+            String url = serverUrl + "/v1/candles/days?market=" + coinName + "&count=" + days;
+            HttpGet request = new HttpGet(url);
+            CloseableHttpResponse response = client.execute(request);
+            HttpEntity entity = response.getEntity();
+            String entityString = (EntityUtils.toString(entity, "UTF-8"));
+            JSONArray jsonObject = (JSONArray) jsonParser.parse(entityString);;
+            for (int i = 0; i < jsonObject.size(); i++) {
+                JSONObject json = (JSONObject) jsonObject.get(i);
+                CandleDTO dto = new CandleDTO();
+                dto.setMarket((String) json.get("market"));
+                dto.setTimeUTC((String) json.get("candle_date_time_utc"));
+                dto.setTimeKST((String) json.get("candle_date_time_kst"));
+                dto.setOpeningPrince(Double.parseDouble(json.get("opening_price").toString()));
+                dto.setHighPrice(Double.parseDouble(json.get("high_price").toString()));
+                dto.setLowPrice(Double.parseDouble(json.get("low_price").toString()));
+                dto.setTradePrice(Double.parseDouble(json.get("trade_price").toString()));
+                dto.setAccumulateTradePrice( json.get("candle_acc_trade_price").toString());
+                dto.setAccumulateTradeVolume(json.get("candle_acc_trade_volume").toString());
                 dtos.add(dto);
             }
         } catch (IOException e) {
