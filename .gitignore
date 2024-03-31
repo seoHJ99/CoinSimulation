@@ -40,3 +40,5 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+data(day).xlsx
+data.xlsx
