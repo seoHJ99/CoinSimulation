@@ -1,8 +1,10 @@
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
+@EqualsAndHashCode
 public class CandleDTO {
     private String market;
     private String timeUTC;
@@ -15,6 +17,9 @@ public class CandleDTO {
     private String accumulateTradePrice;
     private String accumulateTradeVolume;
     private String unit;
+    private double tradeRaisePercentage;
+    private double highRaisePercentage;
+    private double lowRaisePercentage;
 
     @Override
     public String toString() {

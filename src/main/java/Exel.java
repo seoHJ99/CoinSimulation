@@ -13,7 +13,7 @@ import java.util.List;
 
 public class Exel {
 
-    static String filePath = "C:\\Users\\Hojun\\Desktop\\git\\CoinSimulation\\";
+    static String filePath = "C:\\Users\\hojun\\Desktop\\Git\\CoinSimulation\\";
 
     public void makeExelFile(String fileName) throws IOException, RuntimeErrorException {
         FileInputStream fis = null;
