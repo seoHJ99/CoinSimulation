@@ -120,6 +120,7 @@ public class Coin {
                 dto.setTradePrice(Double.parseDouble(json.get("trade_price").toString()));
                 dto.setAccumulateTradePrice( json.get("candle_acc_trade_price").toString());
                 dto.setAccumulateTradeVolume(json.get("candle_acc_trade_volume").toString());
+
                 dtos.add(dto);
             }
         } catch (IOException e) {
