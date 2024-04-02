@@ -1,5 +1,4 @@
 import org.apache.poi.EncryptedDocumentException;
-import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -128,9 +127,12 @@ public class Exel {
         curRow.createCell(6).setCellValue("종가");
         curRow.createCell(7).setCellValue("누적 거래 금액");
         curRow.createCell(8).setCellValue("누적 거래량");
+        curRow.createCell(9).setCellValue("전날 종가 대비 상승률");
+        curRow.createCell(10).setCellValue("전날 종가 대비 최대 상승률");
+        curRow.createCell(11).setCellValue("전날 종가 대비 최소 상승률");
     }
 
-    public void makeSheetRows(HSSFSheet sheet, List<CandleDTO> candleDTOS) throws EncryptedDocumentException, IOException {
+    public void makeSheetRows(HSSFSheet sheet, List<CandleDTO> candleDTOS) throws EncryptedDocumentException {
         HSSFRow curRow;
         int lastRowNumber = sheet.getLastRowNum();
         int row = candleDTOS.size();    // list 크기
@@ -146,6 +148,9 @@ public class Exel {
             curRow.createCell(6).setCellValue(dto.getTradePrice());
             curRow.createCell(7).setCellValue(dto.getAccumulateTradePrice());
             curRow.createCell(8).setCellValue(dto.getAccumulateTradeVolume());
+            curRow.createCell(9).setCellValue(dto.getTradeRaisePercentage());
+            curRow.createCell(10).setCellValue(dto.getHighRaisePercentage());
+            curRow.createCell(11).setCellValue(dto.getLowRaisePercentage());
         }
     }
 

@@ -29,9 +29,10 @@ public class Simulator {
         Coin coin = new Coin();
         Exel exel = new Exel();
         Simulator simulator = new Simulator();
-        exel.makeExelFile("data(day).xlsx");
-//        simulator.makeAllCoin24hourExelData(5);
-        simulator.saveDaysCandleExel();
+        exel.makeExelFile("data.xlsx");
+        simulator.makeAllCoin24hourExelData(8);
+//        exel.makeExelFile("data(day).xlsx");
+//        simulator.saveDaysCandleExel();
 //        FileInputStream fis = new FileInputStream(filePath + "data.xlsx");
 //        simulator.setExelDataToCandleMap(fis);
 //        while (simulator.currentRow <= simulator.rowSize) { // 현재 행(시간) 이 전체 행보다 작을때 반복.

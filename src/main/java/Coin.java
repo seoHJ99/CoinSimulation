@@ -70,6 +70,8 @@ public class Coin {
             HttpEntity entity = response.getEntity();
             String entityString = (EntityUtils.toString(entity, "UTF-8"));
             JSONArray jsonObject = (JSONArray) jsonParser.parse(entityString);;
+            CandleDTO afterDto = null;
+
             for (int i = 0; i < jsonObject.size(); i++) {
                 JSONObject json = (JSONObject) jsonObject.get(i);
                 CandleDTO dto = new CandleDTO();
@@ -82,15 +84,34 @@ public class Coin {
                 dto.setTradePrice(Double.parseDouble(json.get("trade_price").toString()));
                 dto.setAccumulateTradePrice( json.get("candle_acc_trade_price").toString());
                 dto.setAccumulateTradeVolume(json.get("candle_acc_trade_volume").toString());
-                dto.setUnit(json.get("unit").toString());
+
+                if( dtos.size() > 1){
+                    afterDto = dtos.get(dtos.size()-1);
+                    CandleDTO lastDto = dtos.get(dtos.size() - 1);
+                    lastDto.setTradeRaisePercentage(getRaisePercentage( dto.getTradePrice(), afterDto.getTradePrice()));
+                    lastDto.setHighRaisePercentage(getRaisePercentage(dto.getTradePrice(), afterDto.getHighPrice()));
+                    lastDto.setLowRaisePercentage(getRaisePercentage( dto.getTradePrice(), afterDto.getLowPrice()));
+                }
                 dtos.add(dto);
             }
+
+            CandleDTO firstDto = dtos.get(0);
+            CandleDTO secondDto = dtos.get(1);
+            firstDto.setTradeRaisePercentage(getRaisePercentage(secondDto.getTradePrice(), firstDto.getTradePrice()));
+            firstDto.setHighRaisePercentage(getRaisePercentage(secondDto.getTradePrice(), firstDto.getHighPrice()));
+            firstDto.setLowRaisePercentage(getRaisePercentage(secondDto.getTradePrice(), firstDto.getLowPrice()));
         } catch (IOException e) {
             e.printStackTrace();
         } catch (org.apache.hc.core5.http.ParseException | ParseException e) {
             throw new RuntimeException(e);
         }
         return dtos;
+    }
+
+    public Double getRaisePercentage(Double past, Double now){
+        double diff = past - now;
+        double percentage = (double) ((-1) * Math.round(diff / past * 10000)) / 100;
+        return percentage;
     }
 
     public List<CandleDTO> dayCandleDtos(String coinName, int days) {
@@ -108,6 +129,7 @@ public class Coin {
             HttpEntity entity = response.getEntity();
             String entityString = (EntityUtils.toString(entity, "UTF-8"));
             JSONArray jsonObject = (JSONArray) jsonParser.parse(entityString);;
+            CandleDTO afterDto = null;
             for (int i = 0; i < jsonObject.size(); i++) {
                 JSONObject json = (JSONObject) jsonObject.get(i);
                 CandleDTO dto = new CandleDTO();
@@ -121,8 +143,21 @@ public class Coin {
                 dto.setAccumulateTradePrice( json.get("candle_acc_trade_price").toString());
                 dto.setAccumulateTradeVolume(json.get("candle_acc_trade_volume").toString());
 
+                if( dtos.size() > 1){
+                    afterDto = dtos.get(dtos.size()-1);
+                    CandleDTO lastDto = dtos.get(dtos.size() - 1);
+                    lastDto.setTradeRaisePercentage(getRaisePercentage( dto.getTradePrice(), afterDto.getTradePrice()));
+                    lastDto.setHighRaisePercentage(getRaisePercentage(dto.getTradePrice(), afterDto.getHighPrice()));
+                    lastDto.setLowRaisePercentage(getRaisePercentage( dto.getTradePrice(), afterDto.getLowPrice()));
+                }
                 dtos.add(dto);
             }
+
+            CandleDTO firstDto = dtos.get(0);
+            CandleDTO secondDto = dtos.get(1);
+            firstDto.setTradeRaisePercentage(getRaisePercentage(secondDto.getTradePrice(), firstDto.getTradePrice()));
+            firstDto.setHighRaisePercentage(getRaisePercentage(secondDto.getTradePrice(), firstDto.getHighPrice()));
+            firstDto.setLowRaisePercentage(getRaisePercentage(secondDto.getTradePrice(), firstDto.getLowPrice()));
         } catch (IOException e) {
             e.printStackTrace();
         } catch (org.apache.hc.core5.http.ParseException | ParseException e) {
