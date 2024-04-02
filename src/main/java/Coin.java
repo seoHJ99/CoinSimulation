@@ -20,7 +20,9 @@ public class Coin {
 
     public static List<String> names = new ArrayList<>();
 
-    public List<String> getNames()  {
+    private final int MINUTES_OF_DAY = 1440;
+
+    public List<String> getNames() {
 
         JSONParser jsonParser = new JSONParser();
         String serverUrl = "https://api.upbit.com";
@@ -69,7 +71,8 @@ public class Coin {
             CloseableHttpResponse response = client.execute(request);
             HttpEntity entity = response.getEntity();
             String entityString = (EntityUtils.toString(entity, "UTF-8"));
-            JSONArray jsonObject = (JSONArray) jsonParser.parse(entityString);;
+            JSONArray jsonObject = (JSONArray) jsonParser.parse(entityString);
+            ;
             CandleDTO afterDto = null;
 
             for (int i = 0; i < jsonObject.size(); i++) {
@@ -82,15 +85,15 @@ public class Coin {
                 dto.setHighPrice(Double.parseDouble(json.get("high_price").toString()));
                 dto.setLowPrice(Double.parseDouble(json.get("low_price").toString()));
                 dto.setTradePrice(Double.parseDouble(json.get("trade_price").toString()));
-                dto.setAccumulateTradePrice( json.get("candle_acc_trade_price").toString());
+                dto.setAccumulateTradePrice(json.get("candle_acc_trade_price").toString());
                 dto.setAccumulateTradeVolume(json.get("candle_acc_trade_volume").toString());
 
-                if( dtos.size() > 1){
-                    afterDto = dtos.get(dtos.size()-1);
+                if (dtos.size() > 1) {
+                    afterDto = dtos.get(dtos.size() - 1);
                     CandleDTO lastDto = dtos.get(dtos.size() - 1);
-                    lastDto.setTradeRaisePercentage(getRaisePercentage( dto.getTradePrice(), afterDto.getTradePrice()));
+                    lastDto.setTradeRaisePercentage(getRaisePercentage(dto.getTradePrice(), afterDto.getTradePrice()));
                     lastDto.setHighRaisePercentage(getRaisePercentage(dto.getTradePrice(), afterDto.getHighPrice()));
-                    lastDto.setLowRaisePercentage(getRaisePercentage( dto.getTradePrice(), afterDto.getLowPrice()));
+                    lastDto.setLowRaisePercentage(getRaisePercentage(dto.getTradePrice(), afterDto.getLowPrice()));
                 }
                 dtos.add(dto);
             }
@@ -108,7 +111,7 @@ public class Coin {
         return dtos;
     }
 
-    public Double getRaisePercentage(Double past, Double now){
+    public Double getRaisePercentage(Double past, Double now) {
         double diff = past - now;
         double percentage = (double) ((-1) * Math.round(diff / past * 10000)) / 100;
         return percentage;
@@ -128,7 +131,8 @@ public class Coin {
             CloseableHttpResponse response = client.execute(request);
             HttpEntity entity = response.getEntity();
             String entityString = (EntityUtils.toString(entity, "UTF-8"));
-            JSONArray jsonObject = (JSONArray) jsonParser.parse(entityString);;
+            JSONArray jsonObject = (JSONArray) jsonParser.parse(entityString);
+            ;
             CandleDTO afterDto = null;
             for (int i = 0; i < jsonObject.size(); i++) {
                 JSONObject json = (JSONObject) jsonObject.get(i);
@@ -140,15 +144,15 @@ public class Coin {
                 dto.setHighPrice(Double.parseDouble(json.get("high_price").toString()));
                 dto.setLowPrice(Double.parseDouble(json.get("low_price").toString()));
                 dto.setTradePrice(Double.parseDouble(json.get("trade_price").toString()));
-                dto.setAccumulateTradePrice( json.get("candle_acc_trade_price").toString());
+                dto.setAccumulateTradePrice(json.get("candle_acc_trade_price").toString());
                 dto.setAccumulateTradeVolume(json.get("candle_acc_trade_volume").toString());
 
-                if( dtos.size() > 1){
-                    afterDto = dtos.get(dtos.size()-1);
+                if (dtos.size() > 1) {
+                    afterDto = dtos.get(dtos.size() - 1);
                     CandleDTO lastDto = dtos.get(dtos.size() - 1);
-                    lastDto.setTradeRaisePercentage(getRaisePercentage( dto.getTradePrice(), afterDto.getTradePrice()));
+                    lastDto.setTradeRaisePercentage(getRaisePercentage(dto.getTradePrice(), afterDto.getTradePrice()));
                     lastDto.setHighRaisePercentage(getRaisePercentage(dto.getTradePrice(), afterDto.getHighPrice()));
-                    lastDto.setLowRaisePercentage(getRaisePercentage( dto.getTradePrice(), afterDto.getLowPrice()));
+                    lastDto.setLowRaisePercentage(getRaisePercentage(dto.getTradePrice(), afterDto.getLowPrice()));
                 }
                 dtos.add(dto);
             }
@@ -168,23 +172,28 @@ public class Coin {
 
     public List<CandleDTO> make24hoursDtos(String name, int days) {
         LocalDateTime yesterDay = LocalDateTime.now();
-//                .minusDays(1);
         String stringDate
                 = yesterDay.format(
                 DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
         );
 
         List<CandleDTO> list = getCandleDTOs(name, 200, stringDate);
-        for(int i =0; i<days;){
+        int allCount = MINUTES_OF_DAY * days;
+        int count = (allCount - 200) / 200;
+        int restCount = (allCount - 200) % 200;
+        for (int i = 0; i < count+1; i++ ) {
             CandleDTO dto = list.get(list.size() - 1);
             String time = dto.getTimeUTC();
-            if(list.size() % 1440 != 0){
-                list.addAll(getCandleDTOs(name,200, time));
-            }else {
-                list.addAll(getCandleDTOs(name,40,time));
-                i++;
+
+            if(i == count){
+                list.addAll(getCandleDTOs(name, restCount, time));
+            }
+
+            if (list.size() % MINUTES_OF_DAY != 0) {
+                list.addAll(getCandleDTOs(name, 200, time));
             }
         }
         return list;
     }
+
 }
