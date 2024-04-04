@@ -15,6 +15,5 @@ public class CoinTest {
         int days = 3;
         List<CandleDTO> candleDTOS = coin.make24hoursDtos("KRW-BTC", days);
         assertThat(candleDTOS.size()).isEqualTo(MINUTES_OF_DAY * days);
-
     }
 }

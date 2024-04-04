@@ -74,6 +74,7 @@ public abstract class Test {
         return result;
     }
 
+
     abstract Map<String, List<CandleDTO>> getAllMinuteData();
 
     private boolean checkTime(Map<String, List<CandleDTO>> result, CandleDTO data, LocalDateTime startTime, Integer duration) {
@@ -85,7 +86,7 @@ public abstract class Test {
             }
 
             LocalDateTime endTime = startTime.plusMinutes(duration);
-            if (endTime.isBefore(LocalDateTime.parse(data.getTimeKST()))) {
+            if (endTime.isAfter(LocalDateTime.parse(data.getTimeKST()))) {
                 return false;
             }
         } else {

@@ -19,20 +19,21 @@ public class Simulator {
     public String buyingCoin = "";
     private LocalDateTime buyingDate;
     public double MONEY = 10_000;
-
     private double minusLine = 0.96;
     private double plusLine = 1.01;
     int rowSize = 0;
     static String filePath = "C:\\Users\\Hojun\\Desktop\\git\\CoinSimulation\\";
+
+    public final int DATA_DAYS = 8;
 
     public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
         Coin coin = new Coin();
         Exel exel = new Exel();
         Simulator simulator = new Simulator();
         exel.makeExelFile("data.xlsx");
-        simulator.makeAllCoin24hourExelData(8);
+        simulator.makeAllCoin24hourExelData(simulator.DATA_DAYS);
 //        exel.makeExelFile("data(day).xlsx");
-//        simulator.saveDaysCandleExel();
+//        simulator.saveDaysCandleExel(simulator.DATA_DAYS);
 //        FileInputStream fis = new FileInputStream(filePath + "data.xlsx");
 //        simulator.setExelDataToCandleMap(fis);
 //        while (simulator.currentRow <= simulator.rowSize) { // 현재 행(시간) 이 전체 행보다 작을때 반복.
@@ -370,7 +371,7 @@ public class Simulator {
         }
     }
 
-    public void saveDaysCandleExel() throws IOException {
+    public void saveDaysCandleExel(int days) throws IOException {
         Coin coin = new Coin();
         Exel exel = new Exel();
         List<String> coinNames = coin.getNames();
@@ -381,7 +382,7 @@ public class Simulator {
         for (String name : coinNames) {
             if (!name.equals("KRW-MNT")) {
                 System.out.println("------------" + name + "-------------");
-                List<CandleDTO> list = coin.dayCandleDtos(name,10);
+                List<CandleDTO> list = coin.dayCandleDtos(name,days);
                 map.put(name, list);
                 System.out.println(list.size());
             }
