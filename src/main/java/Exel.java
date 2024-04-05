@@ -8,7 +8,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public class Exel {
 
@@ -171,4 +174,52 @@ public class Exel {
         fis.close();
         fos.close();
     }
+
+    public void makeAllCoin24hourExelData(int days) throws IOException {
+        Coin coin = new Coin();
+        List<String> coinNames = coin.getNames();
+        for (String coinName : coinNames) {
+            System.out.println(coinName);
+        }
+        Map<String, List<CandleDTO>> map = new HashMap<>();
+        for (String name : coinNames) {
+            if (!name.equals("KRW-MNT")) {
+                System.out.println("------------" + name + "-------------");
+                List<CandleDTO> list = coin.make24hoursDtos(name, days);
+                map.put(name, list);
+                System.out.println(list.size());
+            }
+        }
+        Iterator<String> iterator = map.keySet().iterator();
+
+        while (iterator.hasNext()) {
+            String key = iterator.next();
+            writeExcelFile(key, map.get(key), "data.xlsx");
+        }
+    }
+
+    public void saveDaysCandleExel(int days, String fileName) throws IOException {
+        Coin coin = new Coin();
+        Exel exel = new Exel();
+        List<String> coinNames = coin.getNames();
+        for (String coinName : coinNames) {
+            System.out.println(coinName);
+        }
+        Map<String, List<CandleDTO>> map = new HashMap<>();
+        for (String name : coinNames) {
+            if (!name.equals("KRW-MNT")) {
+                System.out.println("------------" + name + "-------------");
+                List<CandleDTO> list = coin.dayCandleDtos(name,days);
+                map.put(name, list);
+                System.out.println(list.size());
+            }
+        }
+        Iterator<String> iterator = map.keySet().iterator();
+
+        while (iterator.hasNext()) {
+            String key = iterator.next();
+            exel.writeExcelFile(key, map.get(key), fileName);
+        }
+    }
+
 }
