@@ -36,7 +36,7 @@ import java.util.*;
  */
 
 
-public abstract class Test {
+public abstract class ConditionConfiguration {
 
 
     public Map<String, List<CandleDTO>> addDayCondition(Double raisePercentage, Double losePercentage) {
