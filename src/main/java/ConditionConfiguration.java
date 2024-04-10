@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -38,10 +39,19 @@ import java.util.*;
 
 public abstract class ConditionConfiguration {
 
+    private final String MINUTE_FILE_NAME;
+    private final String DAY_FILE_NAME;
 
-    public Map<String, List<CandleDTO>> addDayCondition(Double raisePercentage, Double losePercentage) {
+    private Coin coin = new Coin();
+
+    protected ConditionConfiguration(String fileName, String dayFileName) {
+        MINUTE_FILE_NAME = fileName;
+        DAY_FILE_NAME = dayFileName;
+    }
+
+    public Map<String, List<CandleDTO>> addDayCondition(Double raisePercentage, Double losePercentage) throws IOException {
         Map<String, List<CandleDTO>> result = new HashMap<>();
-        Map<String, List<CandleDTO>> allData = getAllDayData();
+        Map<String, List<CandleDTO>> allData = getAllData(DAY_FILE_NAME);
         for (String key : allData.keySet()) {
             for (CandleDTO data : allData.get(key)) {
 
@@ -52,9 +62,9 @@ public abstract class ConditionConfiguration {
     }
 
     public Map<String, List<CandleDTO>> addMinuteCondition(Double raisePercentage, Double losePercentage,
-                                                           LocalDateTime startTime, Integer duration) {
+                                                           LocalDateTime startTime, Integer duration) throws IOException {
         Map<String, List<CandleDTO>> result = new HashMap<>();
-        Map<String, List<CandleDTO>> allData = getAllMinuteData();
+        Map<String, List<CandleDTO>> allData = getAllData(MINUTE_FILE_NAME);
 
         for (String key : allData.keySet()) {
             for (CandleDTO data : allData.get(key)) {
@@ -75,7 +85,10 @@ public abstract class ConditionConfiguration {
     }
 
 
-    abstract Map<String, List<CandleDTO>> getAllMinuteData();
+    private Map<String, List<CandleDTO>> getAllData(String fileName) throws IOException {
+        new DataConverter().setExelDataToCandleMap(fileName);
+        return Data.exelData;
+    };
 
     private boolean checkTime(Map<String, List<CandleDTO>> result, CandleDTO data, LocalDateTime startTime, Integer duration) {
         if (startTime != null) {
@@ -114,8 +127,6 @@ public abstract class ConditionConfiguration {
         }
         return result;
     }
-
-    abstract Map<String, List<CandleDTO>> getAllDayData();
 
 
     private void addData(Map<String, List<CandleDTO>> result, CandleDTO data) {

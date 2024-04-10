@@ -193,7 +193,6 @@ public class Simulator {
     }
 
 
-
     public String findTargetByNext() {
         Iterator<String> coinNames = candleMap.keySet().iterator();
         while (coinNames.hasNext()) {

@@ -54,7 +54,7 @@ public class Coin {
         return result;
     }
 
-    public List<CandleDTO> getCandleDTOs(String coinName, int count, String beforeTime) {
+    public List<CandleDTO> getMinuteCandleDTOs(String coinName, int count, String beforeTime) {
         JSONParser jsonParser = new JSONParser();
         String serverUrl = "https://api.upbit.com";
         NumberFormat f = NumberFormat.getInstance();
@@ -177,7 +177,7 @@ public class Coin {
                 DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
         );
 
-        List<CandleDTO> list = getCandleDTOs(name, 200, stringDate);
+        List<CandleDTO> list = getMinuteCandleDTOs(name, 200, stringDate);
         int allCount = MINUTES_OF_DAY * days;
         int count = (allCount - 200) / 200;
         int restCount = (allCount - 200) % 200;
@@ -186,11 +186,11 @@ public class Coin {
             String time = dto.getTimeUTC();
 
             if(i == count){
-                list.addAll(getCandleDTOs(name, restCount, time));
+                list.addAll(getMinuteCandleDTOs(name, restCount, time));
             }
 
             if (list.size() % MINUTES_OF_DAY != 0) {
-                list.addAll(getCandleDTOs(name, 200, time));
+                list.addAll(getMinuteCandleDTOs(name, 200, time));
             }
         }
         return list;
